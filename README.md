@@ -1,119 +1,60 @@
-# 🌐 Panel Web Elite - Guía de Instalación
+# 🌐 Panel Web Elite
 
-Panel de administración web profesional con diseño iOS oscuro para gestión de usuarios y repositorios JSON.
-
----
-
-## 📋 Requisitos
-
-- Ubuntu/Debian/CentOS (VPS o servidor)
-- Python 3.7 o superior
-- Acceso root o sudo
+Panel de administración web profesional para gestión de usuarios y repositorios.
 
 ---
 
-## 🚀 Instalación Rápida
+## 🚀 Instalación (1 Comando)
 
-Copia y pega estos comandos en tu terminal:
-
-### 1. Actualizar sistema e instalar dependencias
+Copia y pega este comando en tu terminal:
 
 ```bash
-sudo apt update
-pip3 install flask requests
+wget -O - https://raw.githubusercontent.com/CristianBatero/panel_web/main/install.sh | bash
 ```
 
-### 2. Descargar archivos del panel
+El instalador hará TODO automáticamente:
+- ✅ Instala Python y dependencias
+- ✅ Descarga el panel
+- ✅ Te pide tu PIN
+- ✅ Configura el puerto 5000
+- ✅ Abre el firewall
+- ✅ Inicia el panel
 
-```bash
-# Descargar servidor principal
-wget -O web_panel.py https://raw.githubusercontent.com/CristianBatero/panel_web/main/web_panel.py
+**Listo en 2 minutos.**
 
-# Descargar archivo de configuración
-wget -O config.py https://raw.githubusercontent.com/CristianBatero/panel_web/main/config.example.py
+---
 
-# Descargar plantillas HTML
-mkdir -p templates
-wget -O templates/login.html https://raw.githubusercontent.com/CristianBatero/panel_web/main/templates/login.html
-wget -O templates/dashboard.html https://raw.githubusercontent.com/CristianBatero/panel_web/main/templates/dashboard.html
-wget -O templates/repo_view.html https://raw.githubusercontent.com/CristianBatero/panel_web/main/templates/repo_view.html
-```
+## 🌐 Acceder al Panel
 
-### 3. Configurar tu PIN
-
-Edita el archivo de configuración:
-
-```bash
-nano config.py
-```
-
-Busca esta línea y cambia el PIN:
-
-```python
-'admin_pin': '1823',  # Cambia 1823 por tu PIN
-```
-
-Guarda con `CTRL + O`, Enter, y sal con `CTRL + X`
-
-### 4. Iniciar el panel
-
-```bash
-# Iniciar en segundo plano
-nohup python3 web_panel.py > panel.log 2>&1 &
-```
-
-### 5. Acceder al panel
-
-Abre tu navegador y ve a:
+Abre tu navegador:
 
 ```
-http://TU_IP_VPS:8080
+http://TU_IP:5000
 ```
 
 Ingresa el PIN que configuraste.
 
 ---
 
-## 🔥 Configurar Firewall
-
-Permite el acceso al puerto 8080:
-
-```bash
-# Ubuntu/Debian
-sudo ufw allow 8080/tcp
-sudo ufw reload
-
-# CentOS/RHEL
-sudo firewall-cmd --permanent --add-port=8080/tcp
-sudo firewall-cmd --reload
-```
-
----
-
-## 📱 Acceso desde Móvil/PC
-
-Una vez instalado, puedes acceder desde cualquier dispositivo:
-
-```
-http://TU_IP_VPS:8080
-```
-
-Ejemplo: `http://192.168.1.100:8080`
-
----
-
-## 🔄 Comandos de Mantenimiento
-
-### Ver si el panel está corriendo
-
-```bash
-ps aux | grep web_panel.py
-```
+## 📋 Comandos Útiles
 
 ### Ver logs del panel
 
 ```bash
 tail -f panel.log
+```
+
+### Reiniciar el panel
+
+```bash
+pkill -f web_panel.py
+nohup python3 web_panel.py > panel.log 2>&1 &
+```
+
+### Ver si está corriendo
+
+```bash
+ps aux | grep web_panel
 ```
 
 ### Detener el panel
@@ -122,50 +63,21 @@ tail -f panel.log
 pkill -f web_panel.py
 ```
 
-### Reiniciar el panel
+---
+
+## 🔄 Actualizar el Panel
 
 ```bash
-# Detener
 pkill -f web_panel.py
-
-# Iniciar de nuevo
-nohup python3 web_panel.py > panel.log 2>&1 &
-```
-
-### Actualizar el panel
-
-```bash
-# Detener el panel
-pkill -f web_panel.py
-
-# Descargar nueva versión
 wget -O web_panel.py https://raw.githubusercontent.com/CristianBatero/panel_web/main/web_panel.py
-
-# Iniciar de nuevo
 nohup python3 web_panel.py > panel.log 2>&1 &
 ```
 
 ---
 
-## ⚙️ Configuración Avanzada
+## ⚙️ Cambiar el PIN
 
-### Cambiar el puerto
-
-Edita `config.py`:
-
-```bash
-nano config.py
-```
-
-Busca y cambia:
-
-```python
-'port': 8080,  # Cambia a tu puerto deseado
-```
-
-### Cambiar el PIN
-
-Edita `config.py`:
+Edita el archivo de configuración:
 
 ```bash
 nano config.py
@@ -177,53 +89,63 @@ Busca y cambia:
 'admin_pin': 'TU_NUEVO_PIN',
 ```
 
-Reinicia el panel después de cualquier cambio.
+Guarda: `CTRL + O`, Enter, `CTRL + X`
+
+Reinicia el panel:
+
+```bash
+pkill -f web_panel.py
+nohup python3 web_panel.py > panel.log 2>&1 &
+```
 
 ---
 
-## � Funcionalidades del Panel
+## 🎯 Funcionalidades
 
 ### 👥 Gestión de Usuarios
+- Crear usuarios con contraseña
+- Registrar usuarios por token (Device ID)
+- Renovar suscripciones
+- Filtrar activos/vencidos
+- Búsqueda en tiempo real
+- Enviar notificaciones
+- Editar y eliminar
 
-- ✅ Crear usuarios con contraseña
-- ✅ Registrar usuarios por token (Device ID)
-- ✅ Renovar suscripciones (añadir días)
-- ✅ Filtrar por estado (Activos/Vencidos)
-- ✅ Búsqueda en tiempo real
-- ✅ Enviar notificaciones
-- ✅ Editar y eliminar usuarios
-
-### 📦 Sistema de Repositorios
-
-- ✅ Crear repositorios con contenido JSON
-- ✅ URLs únicas para compartir
-- ✅ Vista pública (solo lectura)
-- ✅ Copiar y descargar archivos
-- ✅ Eliminar repositorios
+### 📦 Repositorios
+- Crear repositorios JSON
+- URLs únicas para compartir
+- Vista pública
+- Copiar y descargar
+- Eliminar repositorios
 
 ---
 
 ## 🐛 Solución de Problemas
 
-### Error: "No module named 'flask'"
+### El panel no inicia
 
+Ver el error:
 ```bash
-pip3 install flask requests
+cat panel.log
 ```
 
-### Error: "Permission denied"
+### Puerto 5000 ocupado
 
-Usa sudo:
-
+Ver qué lo usa:
 ```bash
-sudo python3 web_panel.py
+sudo lsof -i :5000
+```
+
+Matar el proceso:
+```bash
+sudo kill -9 ID_DEL_PROCESO
 ```
 
 ### No puedo acceder desde el navegador
 
-1. Verifica que el panel esté corriendo:
+1. Verifica que esté corriendo:
    ```bash
-   ps aux | grep web_panel.py
+   ps aux | grep web_panel
    ```
 
 2. Verifica el firewall:
@@ -231,95 +153,23 @@ sudo python3 web_panel.py
    sudo ufw status
    ```
 
-3. Verifica los logs:
+3. Abre el puerto manualmente:
    ```bash
-   tail -f panel.log
+   sudo ufw allow 5000/tcp
    ```
 
-### Puerto 8080 ocupado
-
-Cambia el puerto en `config.py` o detén el proceso que lo usa:
-
-```bash
-# Ver qué usa el puerto
-sudo lsof -i :8080
-
-# Matar el proceso
-sudo kill -9 ID_DEL_PROCESO
-```
-
 ---
 
-## 📦 Instalación Completa (Script Automático)
+## 📞 Soporte
 
-Si prefieres un script que lo haga todo automáticamente:
-
-```bash
-# Descargar instalador
-wget -O install.sh https://raw.githubusercontent.com/CristianBatero/panel_web/main/install.sh
-
-# Dar permisos
-chmod +x install.sh
-
-# Ejecutar (te pedirá el PIN)
-./install.sh
-```
-
----
-
-## � Seguridad
-
-### Recomendaciones:
-
-- ✅ Usa un PIN fuerte (mínimo 8 caracteres)
-- ✅ Cambia el PIN por defecto
-- ✅ Mantén el sistema actualizado
-- ✅ Usa HTTPS en producción (con Nginx)
-- ✅ Haz backups regulares de la carpeta `repositories/`
-
-### Backup de datos:
-
-```bash
-# Crear backup
-tar -czf panel_backup_$(date +%Y%m%d).tar.gz repositories/ config.py
-
-# Restaurar backup
-tar -xzf panel_backup_20260305.tar.gz
-```
-
----
-
-## � Soporte
-
-¿Necesitas ayuda?
-
-- 📱 **Telegram**: [@crisis1823](https://t.me/crisis1823)
-- 🐛 **Issues**: [GitHub Issues](https://github.com/CristianBatero/panel_web/issues)
+**Telegram**: [@crisis1823](https://t.me/crisis1823)
 
 ---
 
 ## 👨‍💻 Créditos
 
-Desarrollado con ❤️ por **CrisDev**
-
-- Telegram: [@crisis1823](https://t.me/crisis1823)
-- GitHub: [CristianBatero](https://github.com/CristianBatero)
+Desarrollado por **CrisDev**
 
 ---
 
-## 📄 Licencia
-
-Este proyecto está bajo la Licencia MIT.
-
----
-
-## 🎉 ¡Listo!
-
-Tu Panel Web Elite está instalado y funcionando.
-
-Accede en: **http://TU_IP:8080**
-
----
-
-**Versión**: 2.0.0  
-**Última actualización**: Marzo 2026
+**Versión**: 2.0.0

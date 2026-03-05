@@ -12,7 +12,7 @@ try:
 except ImportError:
     # Valores por defecto si no existe config.py
     API_CONFIG = {'base_url': 'http://localhost:5000', 'timeout': 10}
-    WEB_CONFIG = {'host': '0.0.0.0', 'port': 8080, 'debug': True, 'secret_key': None}
+    WEB_CONFIG = {'host': '0.0.0.0', 'port': 5000, 'debug': False, 'secret_key': None}
     SECURITY_CONFIG = {'admin_pin': '1823', 'session_lifetime_hours': 2}
     REPOS_CONFIG = {'storage_dir': 'repositories', 'id_length': 8}
     UI_CONFIG = {'app_name': 'Panel Elite'}
