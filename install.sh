@@ -9,7 +9,6 @@ echo "  🌐 Panel Web Elite - Instalación Automática"
 echo "════════════════════════════════════════════════════════════"
 echo ""
 echo "Este instalador configurará todo automáticamente."
-echo "Solo necesitas ingresar un PIN cuando se solicite."
 echo ""
 sleep 2
 
@@ -94,7 +93,7 @@ fi
 print_success "Archivos descargados correctamente"
 echo ""
 
-# [5] Solicitar PIN
+# [5] Solicitar PIN - CORREGIDO para funcionar con pipe
 echo "[5/8] Configuración de seguridad..."
 echo ""
 echo "════════════════════════════════════════════════════════════"
@@ -105,8 +104,9 @@ echo "Ingresa un PIN para proteger tu panel."
 echo "Recomendación: Usa mínimo 4 caracteres."
 echo ""
 
+# Redirigir desde /dev/tty para que funcione con pipe
 while true; do
-    read -p "Tu PIN: " USER_PIN
+    read -p "Tu PIN: " USER_PIN < /dev/tty
     if [ -z "$USER_PIN" ]; then
         echo "❌ El PIN no puede estar vacío"
     else
@@ -238,7 +238,7 @@ echo "  📱 Accede a tu Panel"
 echo "════════════════════════════════════════════════════════════"
 echo ""
 echo "  🌐 URL: http://$SERVER_IP:5000"
-echo "  🔐 PIN: (el que configuraste)"
+echo "  🔐 PIN: $USER_PIN"
 echo ""
 echo "════════════════════════════════════════════════════════════"
 echo "  📋 Comandos Útiles"
