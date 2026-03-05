@@ -1,0 +1,1502 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Panel Elite</title>
+    <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/CristianBatero/panel_web/main/icono.png">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica', 'Arial', sans-serif;
+            background: #000000;
+            color: #FFFFFF;
+            min-height: 100vh;
+        }
+        
+        /* Navbar estilo iOS */
+        .navbar {
+            background: rgba(28, 28, 30, 0.95);
+            backdrop-filter: blur(40px) saturate(180%);
+            -webkit-backdrop-filter: blur(40px) saturate(180%);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 16px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        .navbar-left {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        
+        .navbar h1 {
+            font-size: 22px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            background: linear-gradient(135deg, #007AFF 0%, #5856D6 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .navbar-credits {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .navbar-credits img {
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+        }
+        
+        .navbar-credits a {
+            color: #007AFF;
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 500;
+            transition: color 0.3s ease;
+        }
+        
+        .navbar-credits a:hover {
+            color: #5856D6;
+        }
+        
+        .navbar .logout {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 10px 20px;
+            border-radius: 10px;
+            text-decoration: none;
+            color: #FFFFFF;
+            font-size: 15px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .navbar .logout:hover {
+            background: rgba(255, 255, 255, 0.15);
+            transform: translateY(-1px);
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 30px 20px;
+        }
+        
+        /* Tabs estilo iOS */
+        .tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 30px;
+            background: rgba(28, 28, 30, 0.8);
+            padding: 6px;
+            border-radius: 14px;
+            width: fit-content;
+        }
+        
+        .tab {
+            padding: 10px 24px;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: 500;
+            color: rgba(255, 255, 255, 0.6);
+            border-radius: 10px;
+            transition: all 0.3s ease;
+        }
+        
+        .tab.active {
+            background: rgba(255, 255, 255, 0.15);
+            color: #FFFFFF;
+        }
+        
+        .tab:hover:not(.active) {
+            color: rgba(255, 255, 255, 0.8);
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.4s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* Cards estilo iOS */
+        .card {
+            background: rgba(28, 28, 30, 0.8);
+            backdrop-filter: blur(40px) saturate(180%);
+            -webkit-backdrop-filter: blur(40px) saturate(180%);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+        
+        .card h2 {
+            margin-bottom: 24px;
+            color: #FFFFFF;
+            font-size: 24px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 14px;
+            font-weight: 500;
+        }
+        
+        input, select, textarea {
+            width: 100%;
+            padding: 14px 16px;
+            background: rgba(58, 58, 60, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            font-size: 16px;
+            color: #FFFFFF;
+            font-family: inherit;
+            transition: all 0.3s ease;
+        }
+        
+        input::placeholder, textarea::placeholder {
+            color: rgba(255, 255, 255, 0.4);
+        }
+        
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            background: rgba(58, 58, 60, 1);
+            border-color: #007AFF;
+            box-shadow: 0 0 0 4px rgba(0, 122, 255, 0.15);
+        }
+        
+        select {
+            cursor: pointer;
+        }
+        
+        textarea {
+            min-height: 200px;
+            font-family: 'SF Mono', 'Monaco', 'Courier New', monospace;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+        
+        /* Botones estilo iOS */
+        .btn {
+            padding: 12px 24px;
+            background: linear-gradient(135deg, #007AFF 0%, #5856D6 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 16px rgba(0, 122, 255, 0.3);
+            display: inline-block;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 24px rgba(0, 122, 255, 0.4);
+        }
+        
+        .btn:active {
+            transform: translateY(0);
+        }
+        
+        .btn-danger {
+            background: linear-gradient(135deg, #FF3B30 0%, #FF2D55 100%);
+            box-shadow: 0 4px 16px rgba(255, 59, 48, 0.3);
+        }
+        
+        .btn-danger:hover {
+            box-shadow: 0 6px 24px rgba(255, 59, 48, 0.4);
+        }
+        
+        .btn-success {
+            background: linear-gradient(135deg, #34C759 0%, #30D158 100%);
+            box-shadow: 0 4px 16px rgba(52, 199, 89, 0.3);
+        }
+        
+        .btn-success:hover {
+            box-shadow: 0 6px 24px rgba(52, 199, 89, 0.4);
+        }
+        
+        /* Tabla estilo iOS */
+        table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            margin-top: 20px;
+        }
+        
+        th, td {
+            padding: 16px;
+            text-align: left;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        th {
+            background: rgba(255, 255, 255, 0.05);
+            font-weight: 600;
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        tr:last-child td {
+            border-bottom: none;
+        }
+        
+        tr:hover {
+            background: rgba(255, 255, 255, 0.03);
+        }
+        
+        .actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        /* Mensajes */
+        .message {
+            padding: 14px 18px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            display: none;
+            font-size: 15px;
+            font-weight: 500;
+        }
+        
+        .message.success {
+            background: rgba(52, 199, 89, 0.15);
+            color: #34C759;
+            border: 1px solid rgba(52, 199, 89, 0.3);
+        }
+        
+        .message.error {
+            background: rgba(255, 59, 48, 0.15);
+            color: #FF3B30;
+            border: 1px solid rgba(255, 59, 48, 0.3);
+        }
+        
+        /* Repositorios */
+        .repo-item {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 20px;
+            border-radius: 14px;
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+            gap: 16px;
+        }
+        
+        .repo-item:hover {
+            background: rgba(255, 255, 255, 0.08);
+            transform: translateY(-2px);
+        }
+        
+        .repo-info {
+            flex: 1;
+            min-width: 0;
+        }
+        
+        .repo-info strong {
+            display: block;
+            font-size: 16px;
+            margin-bottom: 6px;
+        }
+        
+        .repo-url {
+            color: #007AFF;
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s ease;
+            word-break: break-all;
+            display: block;
+            margin-bottom: 4px;
+        }
+        
+        .repo-url:hover {
+            color: #5856D6;
+        }
+        
+        /* Barra de acciones */
+        .actions-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .filters {
+            display: flex;
+            gap: 12px;
+            flex: 1;
+            min-width: 300px;
+        }
+        
+        .filters select,
+        .filters input[type="text"] {
+            padding: 12px 16px;
+        }
+        
+        .filters input[type="text"] {
+            flex: 1;
+            min-width: 200px;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 12px;
+        }
+        
+        /* Card header */
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .card-header h2 {
+            margin: 0;
+        }
+        
+        .btn-icon {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #FFFFFF;
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 18px;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-icon:hover {
+            background: rgba(255, 255, 255, 0.15);
+            transform: rotate(180deg);
+        }
+        
+        /* Tabla mejorada */
+        .table-container {
+            overflow-x: auto;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+        }
+        
+        th, td {
+            padding: 16px;
+            text-align: left;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        th {
+            background: rgba(255, 255, 255, 0.05);
+            font-weight: 600;
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        
+        tbody tr {
+            transition: all 0.3s ease;
+        }
+        
+        tbody tr:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+        
+        tr:last-child td {
+            border-bottom: none;
+        }
+        
+        /* Badge de estado */
+        .badge {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .badge-active {
+            background: rgba(52, 199, 89, 0.2);
+            color: #34C759;
+            border: 1px solid rgba(52, 199, 89, 0.3);
+        }
+        
+        .badge-expired {
+            background: rgba(255, 59, 48, 0.2);
+            color: #FF3B30;
+            border: 1px solid rgba(255, 59, 48, 0.3);
+        }
+        
+        .badge-token {
+            background: rgba(0, 122, 255, 0.2);
+            color: #007AFF;
+            border: 1px solid rgba(0, 122, 255, 0.3);
+        }
+        
+        .badge-password {
+            background: rgba(88, 86, 214, 0.2);
+            color: #5856D6;
+            border: 1px solid rgba(88, 86, 214, 0.3);
+        }
+        
+        /* Botones de acción en tabla */
+        .action-btn {
+            padding: 8px 12px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            margin-right: 6px;
+            display: inline-block;
+        }
+        
+        .action-btn-edit {
+            background: rgba(0, 122, 255, 0.15);
+            color: #007AFF;
+            border: 1px solid rgba(0, 122, 255, 0.3);
+        }
+        
+        .action-btn-edit:hover {
+            background: rgba(0, 122, 255, 0.25);
+        }
+        
+        .action-btn-renew {
+            background: rgba(52, 199, 89, 0.15);
+            color: #34C759;
+            border: 1px solid rgba(52, 199, 89, 0.3);
+        }
+        
+        .action-btn-renew:hover {
+            background: rgba(52, 199, 89, 0.25);
+        }
+        
+        .action-btn-delete {
+            background: rgba(255, 59, 48, 0.15);
+            color: #FF3B30;
+            border: 1px solid rgba(255, 59, 48, 0.3);
+        }
+        
+        .action-btn-delete:hover {
+            background: rgba(255, 59, 48, 0.25);
+        }
+        
+        .action-btn-notify {
+            background: rgba(255, 149, 0, 0.15);
+            color: #FF9500;
+            border: 1px solid rgba(255, 149, 0, 0.3);
+        }
+        
+        .action-btn-notify:hover {
+            background: rgba(255, 149, 0, 0.25);
+        }
+        
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            animation: fadeIn 0.3s ease;
+        }
+        
+        .modal.active {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .modal-content {
+            background: rgba(28, 28, 30, 0.98);
+            backdrop-filter: blur(40px) saturate(180%);
+            -webkit-backdrop-filter: blur(40px) saturate(180%);
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            animation: slideUp 0.4s ease;
+        }
+        
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+        
+        .modal-header h2 {
+            margin: 0;
+            font-size: 24px;
+        }
+        
+        .modal-close {
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            color: #FFFFFF;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 20px;
+            transition: all 0.3s ease;
+        }
+        
+        .modal-close:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: rotate(90deg);
+        }
+        
+        .modal-footer {
+            display: flex;
+            gap: 12px;
+            margin-top: 24px;
+            justify-content: flex-end;
+        }
+        
+        .btn-cancel {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .btn-cancel:hover {
+            background: rgba(255, 255, 255, 0.15);
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .navbar {
+                padding: 12px 20px;
+                flex-wrap: wrap;
+            }
+            
+            .navbar-left {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 8px;
+            }
+            
+            .navbar h1 {
+                font-size: 18px;
+            }
+            
+            .navbar-credits {
+                font-size: 12px;
+            }
+            
+            .navbar-credits a {
+                font-size: 12px;
+            }
+            
+            .container {
+                padding: 20px 15px;
+            }
+            
+            .card {
+                padding: 20px;
+            }
+            
+            .tabs {
+                width: 100%;
+                justify-content: space-around;
+            }
+            
+            .tab {
+                flex: 1;
+                text-align: center;
+                padding: 10px 12px;
+                font-size: 14px;
+            }
+            
+            .actions-bar {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .filters {
+                flex-direction: column;
+                width: 100%;
+            }
+            
+            .action-buttons {
+                width: 100%;
+                flex-direction: column;
+            }
+            
+            .action-buttons .btn {
+                width: 100%;
+            }
+            
+            /* Tabla responsive - Cards en móvil */
+            .table-container {
+                overflow: visible;
+            }
+            
+            table {
+                display: block;
+            }
+            
+            thead {
+                display: none;
+            }
+            
+            tbody {
+                display: block;
+            }
+            
+            tr {
+                display: block;
+                background: rgba(255, 255, 255, 0.03);
+                border-radius: 12px;
+                padding: 16px;
+                margin-bottom: 12px;
+                border: 1px solid rgba(255, 255, 255, 0.1);
+            }
+            
+            tr:hover {
+                background: rgba(255, 255, 255, 0.05);
+            }
+            
+            td {
+                display: block;
+                text-align: left;
+                padding: 8px 0;
+                border: none;
+            }
+            
+            td::before {
+                content: attr(data-label);
+                display: block;
+                font-size: 11px;
+                color: rgba(255, 255, 255, 0.6);
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+                margin-bottom: 4px;
+                font-weight: 600;
+            }
+            
+            /* Botones de acción en móvil */
+            td:last-child {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 8px;
+                margin-top: 12px;
+                padding-top: 12px;
+                border-top: 1px solid rgba(255, 255, 255, 0.1);
+            }
+            
+            .action-btn {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                width: 100%;
+                margin: 0;
+                padding: 10px;
+                font-size: 14px;
+            }
+            
+            /* Badges más grandes en móvil */
+            .badge {
+                display: inline-block;
+                padding: 8px 14px;
+                font-size: 13px;
+            }
+            
+            /* Modal en móvil */
+            .modal-content {
+                width: 95%;
+                padding: 20px;
+                max-height: 85vh;
+            }
+            
+            .modal-header h2 {
+                font-size: 20px;
+            }
+            
+            .modal-footer {
+                flex-direction: column-reverse;
+            }
+            
+            .modal-footer .btn {
+                width: 100%;
+            }
+            
+            /* Info grid en modal renovar */
+            .modal-content [style*="grid-template-columns"] {
+                grid-template-columns: 1fr !important;
+            }
+        }
+        
+        /* Mejoras adicionales para móviles muy pequeños */
+        @media (max-width: 480px) {
+            .navbar h1 {
+                font-size: 16px;
+            }
+            
+            .container {
+                padding: 15px 10px;
+            }
+            
+            .card {
+                padding: 16px;
+                border-radius: 16px;
+            }
+            
+            .card h2 {
+                font-size: 20px;
+            }
+            
+            .tab {
+                padding: 8px 8px;
+                font-size: 13px;
+            }
+            
+            input, select, textarea {
+                font-size: 16px; /* Evita zoom en iOS */
+            }
+            
+            .btn {
+                padding: 12px 20px;
+                font-size: 15px;
+            }
+            
+            /* Botones de acción en grid 2x2 */
+            td:last-child {
+                grid-template-columns: 1fr 1fr;
+            }
+            
+            .action-btn {
+                padding: 12px 8px;
+                font-size: 12px;
+            }
+            
+            /* Repositorios en móvil */
+            .repo-item {
+                flex-direction: column;
+                align-items: stretch;
+                padding: 16px;
+            }
+            
+            .repo-info {
+                margin-bottom: 12px;
+            }
+            
+            .repo-item .btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <div class="navbar-left">
+            <h1>🎯 Panel Elite</h1>
+            <div class="navbar-credits">
+                <img src="https://raw.githubusercontent.com/CristianBatero/panel_web/main/icono.png" alt="CrisDev">
+                <a href="https://t.me/crisis1823" target="_blank">@crisis1823</a>
+            </div>
+        </div>
+        <a href="/logout" class="logout">Cerrar Sesión</a>
+    </div>
+
+    <div class="container">
+        <div class="tabs">
+            <button class="tab active" onclick="showTab('users')">👥 Usuarios</button>
+            <button class="tab" onclick="showTab('repos')">📦 Repositorios</button>
+        </div>
+
+        <!-- Tab Usuarios -->
+        <div id="users" class="tab-content active">
+            <!-- Barra de acciones -->
+            <div class="actions-bar">
+                <div class="filters">
+                    <select id="statusFilter" onchange="filterUsers()">
+                        <option value="all">Todos los usuarios</option>
+                        <option value="active">Activos</option>
+                        <option value="expired">Vencidos</option>
+                    </select>
+                    <input type="text" id="searchUser" placeholder="🔍 Buscar usuario..." onkeyup="filterUsers()">
+                </div>
+                <div class="action-buttons">
+                    <button class="btn btn-success" onclick="openCreateUserModal()">
+                        ➕ Crear Usuario
+                    </button>
+                    <button class="btn" onclick="openNotifyAllModal()">
+                        📢 Notificar a Todos
+                    </button>
+                </div>
+            </div>
+
+            <!-- Tabla de usuarios -->
+            <div class="card">
+                <div class="card-header">
+                    <h2>👥 Usuarios Registrados</h2>
+                    <button class="btn-icon" onclick="loadUsers()" title="Actualizar">
+                        🔄
+                    </button>
+                </div>
+                <div class="table-container">
+                    <table id="usersTable">
+                        <thead>
+                            <tr>
+                                <th>Usuario</th>
+                                <th>Tipo</th>
+                                <th>Alias</th>
+                                <th>Estado</th>
+                                <th>Expira</th>
+                                <th>Días Restantes</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="usersBody">
+                            <tr><td colspan="7" style="text-align:center;color:rgba(255,255,255,0.5);padding:40px;">Cargando usuarios...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab Repositorios -->
+        <div id="repos" class="tab-content">
+            <div class="card">
+                <h2>📦 Crear Nuevo Repositorio</h2>
+                <div id="repoMessage" class="message"></div>
+                <form id="repoForm">
+                    <div class="form-group">
+                        <label>Nombre del Repositorio</label>
+                        <input type="text" id="repoName" placeholder="Ej: Configuración VPN" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Contenido JSON</label>
+                        <textarea id="repoContent" placeholder='{"ejemplo": "datos", "version": "1.0"}'></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-success">Crear Repositorio</button>
+                </form>
+            </div>
+
+            <div class="card">
+                <h2>📚 Repositorios Existentes</h2>
+                <button class="btn" onclick="loadRepos()">🔄 Actualizar</button>
+                <div id="reposList"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Crear/Editar Usuario -->
+    <div id="userModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="userModalTitle">➕ Crear Usuario</h2>
+                <button class="modal-close" onclick="closeUserModal()">✕</button>
+            </div>
+            <div id="userModalMessage" class="message"></div>
+            <form id="userForm">
+                <input type="hidden" id="editingUsername">
+                <div class="form-group">
+                    <label>Tipo de Usuario</label>
+                    <select id="userType" onchange="toggleUserType()">
+                        <option value="password">Usuario con Contraseña</option>
+                        <option value="token">Usuario por Token (ID)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label id="usernameLabel">Nombre de Usuario</label>
+                    <input type="text" id="username" placeholder="Ingresa el nombre de usuario" required>
+                </div>
+                <div class="form-group" id="passwordGroup">
+                    <label>Contraseña</label>
+                    <input type="password" id="password" placeholder="Ingresa la contraseña">
+                </div>
+                <div class="form-group" id="aliasGroup" style="display:none;">
+                    <label>Alias/Referencia</label>
+                    <input type="text" id="alias" placeholder="Ej: Cliente Juan">
+                </div>
+                <div class="form-group">
+                    <label>Días de Acceso</label>
+                    <input type="number" id="days" value="30" placeholder="30" required>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-cancel" onclick="closeUserModal()">Cancelar</button>
+                    <button type="submit" class="btn btn-success">Guardar Usuario</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Notificar Usuario -->
+    <div id="notifyModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="notifyModalTitle">📢 Enviar Notificación</h2>
+                <button class="modal-close" onclick="closeNotifyModal()">✕</button>
+            </div>
+            <div id="notifyModalMessage" class="message"></div>
+            <form id="notifyForm">
+                <input type="hidden" id="notifyUsername">
+                <div class="form-group">
+                    <label>Título de la Notificación</label>
+                    <input type="text" id="notifyTitle" placeholder="Ej: Actualización importante" required>
+                </div>
+                <div class="form-group">
+                    <label>Mensaje</label>
+                    <textarea id="notifyMessage" placeholder="Escribe tu mensaje aquí..." style="min-height:120px;" required></textarea>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-cancel" onclick="closeNotifyModal()">Cancelar</button>
+                    <button type="submit" class="btn">Enviar Notificación</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Renovar Usuario -->
+    <div id="renewModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="renewModalTitle">🔄 Renovar Usuario</h2>
+                <button class="modal-close" onclick="closeRenewModal()">✕</button>
+            </div>
+            <div id="renewModalMessage" class="message"></div>
+            <form id="renewForm">
+                <input type="hidden" id="renewUsername">
+                
+                <!-- Info del usuario -->
+                <div style="background: rgba(255, 255, 255, 0.05); padding: 16px; border-radius: 12px; margin-bottom: 20px;">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                        <div>
+                            <div style="font-size: 12px; color: rgba(255, 255, 255, 0.6); margin-bottom: 4px;">Usuario</div>
+                            <div style="font-weight: 600;" id="renewUserDisplay"></div>
+                        </div>
+                        <div>
+                            <div style="font-size: 12px; color: rgba(255, 255, 255, 0.6); margin-bottom: 4px;">Estado Actual</div>
+                            <div id="renewStatusDisplay"></div>
+                        </div>
+                        <div>
+                            <div style="font-size: 12px; color: rgba(255, 255, 255, 0.6); margin-bottom: 4px;">Expira</div>
+                            <div id="renewExpiryDisplay"></div>
+                        </div>
+                        <div>
+                            <div style="font-size: 12px; color: rgba(255, 255, 255, 0.6); margin-bottom: 4px;">Días Restantes</div>
+                            <div id="renewDaysDisplay"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Días a Añadir</label>
+                    <input type="number" id="renewDays" value="30" min="1" placeholder="30" required>
+                    <small style="color: rgba(255, 255, 255, 0.6); font-size: 13px; margin-top: 6px; display: block;">
+                        Los días se sumarán a la fecha de expiración actual
+                    </small>
+                </div>
+
+                <!-- Preview de nueva fecha -->
+                <div style="background: rgba(52, 199, 89, 0.15); border: 1px solid rgba(52, 199, 89, 0.3); padding: 14px; border-radius: 10px; margin-bottom: 20px;">
+                    <div style="font-size: 13px; color: rgba(255, 255, 255, 0.8); margin-bottom: 4px;">Nueva fecha de expiración:</div>
+                    <div style="font-size: 16px; font-weight: 600; color: #34C759;" id="renewNewDateDisplay">-</div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-cancel" onclick="closeRenewModal()">Cancelar</button>
+                    <button type="submit" class="btn btn-success">Renovar Usuario</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Variables globales
+        let allUsers = [];
+        let currentFilter = 'all';
+        let currentSearch = '';
+
+        function showTab(tabName) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            event.target.classList.add('active');
+            document.getElementById(tabName).classList.add('active');
+            
+            if (tabName === 'users') loadUsers();
+            if (tabName === 'repos') loadRepos();
+        }
+
+        // Funciones de Modal Usuario
+        function openCreateUserModal() {
+            document.getElementById('userModalTitle').textContent = '➕ Crear Usuario';
+            document.getElementById('userForm').reset();
+            document.getElementById('editingUsername').value = '';
+            document.getElementById('userModal').classList.add('active');
+        }
+
+        function openEditUserModal(user) {
+            document.getElementById('userModalTitle').textContent = '✏️ Editar Usuario';
+            document.getElementById('editingUsername').value = user.username;
+            document.getElementById('username').value = user.username;
+            document.getElementById('username').disabled = true;
+            
+            if (user.type === 'token') {
+                document.getElementById('userType').value = 'token';
+                document.getElementById('alias').value = user.alias || '';
+                toggleUserType();
+            } else {
+                document.getElementById('userType').value = 'password';
+                toggleUserType();
+            }
+            
+            document.getElementById('days').value = user.daysRemaining || 30;
+            document.getElementById('userModal').classList.add('active');
+        }
+
+        function closeUserModal() {
+            document.getElementById('userModal').classList.remove('active');
+            document.getElementById('username').disabled = false;
+            document.getElementById('userForm').reset();
+        }
+
+        // Funciones de Modal Notificación
+        function openNotifyModal(username) {
+            document.getElementById('notifyModalTitle').textContent = `📢 Notificar a ${username}`;
+            document.getElementById('notifyUsername').value = username;
+            document.getElementById('notifyForm').reset();
+            document.getElementById('notifyModal').classList.add('active');
+        }
+
+        function openNotifyAllModal() {
+            document.getElementById('notifyModalTitle').textContent = '📢 Notificar a Todos';
+            document.getElementById('notifyUsername').value = 'all';
+            document.getElementById('notifyForm').reset();
+            document.getElementById('notifyModal').classList.add('active');
+        }
+
+        function closeNotifyModal() {
+            document.getElementById('notifyModal').classList.remove('active');
+            document.getElementById('notifyForm').reset();
+        }
+
+        // Funciones de Modal Renovar
+        let currentRenewUser = null;
+
+        function openRenewModal(user) {
+            currentRenewUser = user;
+            const daysRemaining = calculateDaysRemaining(user.expiry);
+            const isActive = daysRemaining > 0;
+            
+            document.getElementById('renewUsername').value = user.username;
+            document.getElementById('renewUserDisplay').textContent = user.username;
+            
+            // Estado
+            const statusBadge = isActive 
+                ? '<span class="badge badge-active">Activo</span>' 
+                : '<span class="badge badge-expired">Vencido</span>';
+            document.getElementById('renewStatusDisplay').innerHTML = statusBadge;
+            
+            // Fecha de expiración
+            document.getElementById('renewExpiryDisplay').textContent = new Date(user.expiry).toLocaleDateString('es-ES');
+            
+            // Días restantes
+            const daysText = daysRemaining > 0 ? `${daysRemaining} días` : 'Expirado';
+            document.getElementById('renewDaysDisplay').textContent = daysText;
+            
+            // Reset días a añadir
+            document.getElementById('renewDays').value = 30;
+            updateNewExpiryDate();
+            
+            document.getElementById('renewModal').classList.add('active');
+        }
+
+        function closeRenewModal() {
+            document.getElementById('renewModal').classList.remove('active');
+            document.getElementById('renewForm').reset();
+            currentRenewUser = null;
+        }
+
+        function updateNewExpiryDate() {
+            if (!currentRenewUser) return;
+            
+            const daysToAdd = parseInt(document.getElementById('renewDays').value) || 0;
+            const currentExpiry = new Date(currentRenewUser.expiry);
+            const newExpiry = new Date(currentExpiry);
+            newExpiry.setDate(newExpiry.getDate() + daysToAdd);
+            
+            document.getElementById('renewNewDateDisplay').textContent = 
+                newExpiry.toLocaleDateString('es-ES', { 
+                    weekday: 'long', 
+                    year: 'numeric', 
+                    month: 'long', 
+                    day: 'numeric' 
+                });
+        }
+
+        // Actualizar preview cuando cambian los días
+        document.addEventListener('DOMContentLoaded', function() {
+            const renewDaysInput = document.getElementById('renewDays');
+            if (renewDaysInput) {
+                renewDaysInput.addEventListener('input', updateNewExpiryDate);
+            }
+        });
+
+        function toggleUserType() {
+            const type = document.getElementById('userType').value;
+            const passwordGroup = document.getElementById('passwordGroup');
+            const aliasGroup = document.getElementById('aliasGroup');
+            const usernameLabel = document.getElementById('usernameLabel');
+            
+            if (type === 'token') {
+                passwordGroup.style.display = 'none';
+                aliasGroup.style.display = 'block';
+                usernameLabel.textContent = 'Token (Device ID)';
+            } else {
+                passwordGroup.style.display = 'block';
+                aliasGroup.style.display = 'none';
+                usernameLabel.textContent = 'Nombre de Usuario';
+            }
+        }
+
+        function showMessage(elementId, message, type) {
+            const el = document.getElementById(elementId);
+            el.textContent = message;
+            el.className = `message ${type}`;
+            el.style.display = 'block';
+            setTimeout(() => el.style.display = 'none', 5000);
+        }
+
+        // Calcular días restantes
+        function calculateDaysRemaining(expiryDate) {
+            const now = new Date();
+            const expiry = new Date(expiryDate);
+            const diff = expiry - now;
+            const days = Math.ceil(diff / (1000 * 60 * 60 * 24));
+            return days;
+        }
+
+        // Determinar si está activo
+        function isActive(expiryDate) {
+            return calculateDaysRemaining(expiryDate) > 0;
+        }
+
+        // Filtrar usuarios
+        function filterUsers() {
+            currentFilter = document.getElementById('statusFilter').value;
+            currentSearch = document.getElementById('searchUser').value.toLowerCase();
+            renderUsers();
+        }
+
+        function renderUsers() {
+            const tbody = document.getElementById('usersBody');
+            
+            let filtered = allUsers.filter(user => {
+                const active = isActive(user.expiry);
+                const matchesFilter = currentFilter === 'all' || 
+                                     (currentFilter === 'active' && active) ||
+                                     (currentFilter === 'expired' && !active);
+                
+                const matchesSearch = !currentSearch || 
+                                     user.username.toLowerCase().includes(currentSearch) ||
+                                     (user.alias && user.alias.toLowerCase().includes(currentSearch));
+                
+                return matchesFilter && matchesSearch;
+            });
+            
+            if (filtered.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:rgba(255,255,255,0.5);padding:40px;">No se encontraron usuarios</td></tr>';
+                return;
+            }
+            
+            tbody.innerHTML = filtered.map(u => {
+                const daysRemaining = calculateDaysRemaining(u.expiry);
+                const active = daysRemaining > 0;
+                const userType = u.password ? 'password' : 'token';
+                
+                return `
+                    <tr>
+                        <td data-label="Usuario"><strong>${u.username}</strong></td>
+                        <td data-label="Tipo"><span class="badge badge-${userType}">${userType === 'token' ? 'Token' : 'Contraseña'}</span></td>
+                        <td data-label="Alias">${u.alias || '-'}</td>
+                        <td data-label="Estado"><span class="badge badge-${active ? 'active' : 'expired'}">${active ? 'Activo' : 'Vencido'}</span></td>
+                        <td data-label="Expira">${new Date(u.expiry).toLocaleDateString('es-ES')}</td>
+                        <td data-label="Días Restantes">${daysRemaining > 0 ? daysRemaining + ' días' : 'Expirado'}</td>
+                        <td data-label="Acciones">
+                            <button class="action-btn action-btn-edit" onclick='editUser(${JSON.stringify(u)})' title="Editar">
+                                ✏️ Editar
+                            </button>
+                            <button class="action-btn action-btn-renew" onclick='openRenewModal(${JSON.stringify(u)})' title="Renovar">
+                                🔄 Renovar
+                            </button>
+                            <button class="action-btn action-btn-notify" onclick="openNotifyModal('${u.username}')" title="Notificar">
+                                📢 Notificar
+                            </button>
+                            <button class="action-btn action-btn-delete" onclick="deleteUser('${u.username}')" title="Eliminar">
+                                🗑️ Eliminar
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function editUser(user) {
+            user.daysRemaining = calculateDaysRemaining(user.expiry);
+            user.type = user.password ? 'password' : 'token';
+            openEditUserModal(user);
+        }
+
+        // Formulario de usuarios
+        document.getElementById('userForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const type = document.getElementById('userType').value;
+            const isEditing = document.getElementById('editingUsername').value !== '';
+            
+            const data = {
+                username: document.getElementById('username').value,
+                password: type === 'password' ? document.getElementById('password').value : '',
+                days: parseInt(document.getElementById('days').value),
+                alias: type === 'token' ? document.getElementById('alias').value : ''
+            };
+
+            try {
+                const response = await fetch('/api/users/add', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(data)
+                });
+                const result = await response.json();
+                showMessage('userModalMessage', result.message || 'Usuario guardado exitosamente', 'success');
+                
+                setTimeout(() => {
+                    closeUserModal();
+                    loadUsers();
+                }, 1500);
+            } catch (error) {
+                showMessage('userModalMessage', 'Error al guardar usuario', 'error');
+            }
+        });
+
+        // Formulario de notificaciones
+        document.getElementById('notifyForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const username = document.getElementById('notifyUsername').value;
+            const title = document.getElementById('notifyTitle').value;
+            const message = document.getElementById('notifyMessage').value;
+
+            try {
+                const response = await fetch('/api/notify', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ username, title, message })
+                });
+                const result = await response.json();
+                showMessage('notifyModalMessage', result.message || 'Notificación enviada', 'success');
+                
+                setTimeout(() => {
+                    closeNotifyModal();
+                }, 1500);
+            } catch (error) {
+                showMessage('notifyModalMessage', 'Error al enviar notificación', 'error');
+            }
+        });
+
+        // Formulario de renovación
+        document.getElementById('renewForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const username = document.getElementById('renewUsername').value;
+            const daysToAdd = parseInt(document.getElementById('renewDays').value);
+
+            try {
+                const response = await fetch('/api/users/renew', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ username, days: daysToAdd })
+                });
+                const result = await response.json();
+                showMessage('renewModalMessage', result.message || 'Usuario renovado exitosamente', 'success');
+                
+                setTimeout(() => {
+                    closeRenewModal();
+                    loadUsers();
+                }, 1500);
+            } catch (error) {
+                showMessage('renewModalMessage', 'Error al renovar usuario', 'error');
+            }
+        });
+
+        // Cargar usuarios
+        async function loadUsers() {
+            try {
+                const response = await fetch('/api/users');
+                allUsers = await response.json();
+                renderUsers();
+            } catch (error) {
+                console.error('Error cargando usuarios:', error);
+                document.getElementById('usersBody').innerHTML = 
+                    '<tr><td colspan="7" style="text-align:center;color:#FF3B30;padding:40px;">Error al cargar usuarios</td></tr>';
+            }
+        }
+
+        async function deleteUser(username) {
+            if (!confirm(`¿Eliminar usuario ${username}?`)) return;
+            
+            try {
+                await fetch('/api/users/delete', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({username})
+                });
+                loadUsers();
+            } catch (error) {
+                alert('Error al eliminar usuario');
+            }
+        }
+
+        // Formulario de repositorios
+        document.getElementById('repoForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const name = document.getElementById('repoName').value;
+            const contentStr = document.getElementById('repoContent').value;
+            
+            let content = {};
+            try {
+                content = contentStr ? JSON.parse(contentStr) : {};
+            } catch (error) {
+                showMessage('repoMessage', 'JSON inválido', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/repos/create', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({name, content})
+                });
+                const result = await response.json();
+                
+                if (result.success) {
+                    showMessage('repoMessage', `Repositorio creado: ${window.location.origin}${result.url}`, 'success');
+                    loadRepos();
+                    e.target.reset();
+                } else {
+                    showMessage('repoMessage', result.error || 'Error', 'error');
+                }
+            } catch (error) {
+                showMessage('repoMessage', 'Error al crear repositorio', 'error');
+            }
+        });
+
+        // Cargar repositorios
+        async function loadRepos() {
+            try {
+                const response = await fetch('/api/repos');
+                const repos = await response.json();
+                const container = document.getElementById('reposList');
+                
+                if (Object.keys(repos).length === 0) {
+                    container.innerHTML = '<p style="text-align:center;color:rgba(255,255,255,0.5);padding:20px;">No hay repositorios</p>';
+                    return;
+                }
+                
+                container.innerHTML = Object.entries(repos).map(([id, repo]) => `
+                    <div class="repo-item">
+                        <div class="repo-info">
+                            <strong>${repo.name}</strong>
+                            <a href="${repo.url}" target="_blank" class="repo-url">${window.location.origin}${repo.url}</a>
+                            <small style="color:rgba(255,255,255,0.5);">Creado: ${new Date(repo.created).toLocaleString()}</small>
+                        </div>
+                        <button class="btn btn-danger" onclick="deleteRepo('${id}')">Eliminar</button>
+                    </div>
+                `).join('');
+            } catch (error) {
+                console.error('Error cargando repositorios:', error);
+            }
+        }
+
+        async function deleteRepo(repoId) {
+            if (!confirm('¿Eliminar este repositorio?')) return;
+            
+            try {
+                await fetch(`/api/repos/${repoId}/delete`, {method: 'DELETE'});
+                loadRepos();
+            } catch (error) {
+                alert('Error al eliminar repositorio');
+            }
+        }
+
+        // Cargar datos iniciales
+        loadUsers();
+    </script>
+</body>
+</html>

@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Repositorio - {{ repo_info.name }}</title>
+    <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/CristianBatero/panel_web/main/icono.png">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica', 'Arial', sans-serif;
+            background: #000000;
+            color: #FFFFFF;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        /* Header estilo iOS */
+        .header {
+            background: rgba(28, 28, 30, 0.95);
+            backdrop-filter: blur(40px) saturate(180%);
+            -webkit-backdrop-filter: blur(40px) saturate(180%);
+            padding: 40px;
+            border-radius: 24px;
+            margin-bottom: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+        
+        .header h1 {
+            font-size: 36px;
+            font-weight: 700;
+            margin-bottom: 12px;
+            letter-spacing: -1px;
+            background: linear-gradient(135deg, #007AFF 0%, #5856D6 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .header p {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 16px;
+        }
+        
+        /* Card estilo iOS */
+        .card {
+            background: rgba(28, 28, 30, 0.8);
+            backdrop-filter: blur(40px) saturate(180%);
+            -webkit-backdrop-filter: blur(40px) saturate(180%);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+        
+        .card h2 {
+            color: #FFFFFF;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 24px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+        
+        /* File item */
+        .file-item {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+        }
+        
+        .file-item:hover {
+            background: rgba(255, 255, 255, 0.08);
+            transform: translateY(-2px);
+        }
+        
+        .file-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        
+        .file-name {
+            font-weight: 600;
+            color: #007AFF;
+            font-size: 18px;
+        }
+        
+        /* Botones estilo iOS */
+        .btn {
+            padding: 10px 20px;
+            background: linear-gradient(135deg, #007AFF 0%, #5856D6 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(0, 122, 255, 0.3);
+            display: inline-block;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 122, 255, 0.4);
+        }
+        
+        .btn:active {
+            transform: translateY(0);
+        }
+        
+        /* JSON Viewer con tema oscuro */
+        .json-viewer {
+            background: #1C1C1E;
+            color: #D4D4D4;
+            padding: 20px;
+            border-radius: 12px;
+            overflow-x: auto;
+            font-family: 'SF Mono', 'Monaco', 'Courier New', monospace;
+            font-size: 14px;
+            line-height: 1.8;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .json-key {
+            color: #9CDCFE;
+        }
+        
+        .json-string {
+            color: #CE9178;
+        }
+        
+        .json-number {
+            color: #B5CEA8;
+        }
+        
+        .json-boolean {
+            color: #569CD6;
+        }
+        
+        .json-null {
+            color: #569CD6;
+        }
+        
+        /* Loading y Error */
+        .loading {
+            text-align: center;
+            padding: 60px;
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 16px;
+        }
+        
+        .error {
+            background: rgba(255, 59, 48, 0.15);
+            color: #FF3B30;
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 59, 48, 0.3);
+        }
+        
+        /* Info Grid */
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+        
+        .info-item {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 20px;
+            border-radius: 14px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .info-label {
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.6);
+            text-transform: uppercase;
+            margin-bottom: 8px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+        
+        .info-value {
+            font-size: 18px;
+            font-weight: 600;
+            color: #FFFFFF;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            body {
+                padding: 15px;
+            }
+            
+            .header {
+                padding: 30px 25px;
+            }
+            
+            .header h1 {
+                font-size: 28px;
+            }
+            
+            .card {
+                padding: 20px;
+            }
+            
+            .card h2 {
+                font-size: 20px;
+            }
+            
+            .file-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .file-header > div:last-child {
+                width: 100%;
+                margin-top: 12px;
+            }
+            
+            .btn {
+                width: 100%;
+                margin-bottom: 8px;
+            }
+            
+            .json-viewer {
+                font-size: 12px;
+                padding: 15px;
+            }
+            
+            .info-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        /* Móviles muy pequeños */
+        @media (max-width: 480px) {
+            body {
+                padding: 10px;
+            }
+            
+            .header {
+                padding: 24px 20px;
+                border-radius: 20px;
+            }
+            
+            .header h1 {
+                font-size: 24px;
+            }
+            
+            .header p {
+                font-size: 14px;
+            }
+            
+            .card {
+                padding: 16px;
+                border-radius: 16px;
+            }
+            
+            .card h2 {
+                font-size: 18px;
+            }
+            
+            .file-item {
+                padding: 16px;
+                border-radius: 12px;
+            }
+            
+            .file-name {
+                font-size: 16px;
+            }
+            
+            .btn {
+                padding: 10px 16px;
+                font-size: 13px;
+            }
+            
+            .json-viewer {
+                font-size: 11px;
+                padding: 12px;
+                border-radius: 10px;
+            }
+            
+            .info-item {
+                padding: 16px;
+            }
+            
+            .info-label {
+                font-size: 11px;
+            }
+            
+            .info-value {
+                font-size: 16px;
+            }
+        }
+        
+        /* Animación de entrada */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .container > * {
+            animation: fadeInUp 0.6s ease;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📦 {{ repo_info.name }}</h1>
+            <p>Repositorio público - Solo lectura</p>
+        </div>
+
+        <div class="card">
+            <h2>ℹ️ Información del Repositorio</h2>
+            <div class="info-grid">
+                <div class="info-item">
+                    <div class="info-label">ID</div>
+                    <div class="info-value">{{ repo_id }}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Creado</div>
+                    <div class="info-value" id="createdDate"></div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Archivos</div>
+                    <div class="info-value">{{ repo_info.files|length }}</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>📄 Archivos</h2>
+            <div id="filesContainer" class="loading">Cargando archivos...</div>
+        </div>
+        
+        <!-- Créditos -->
+        <div style="text-align: center; padding: 20px; margin-top: 20px; border-top: 1px solid rgba(255, 255, 255, 0.1);">
+            <div style="color: rgba(255, 255, 255, 0.6); font-size: 13px; margin-bottom: 8px;">
+                Desarrollado por
+            </div>
+            <div style="display: flex; align-items: center; justify-content: center; gap: 8px;">
+                <img src="https://raw.githubusercontent.com/CristianBatero/panel_web/main/icono.png" alt="CrisDev" style="width: 32px; height: 32px; border-radius: 8px;">
+                <div>
+                    <div style="color: #FFFFFF; font-weight: 600; font-size: 15px;">CrisDev</div>
+                    <a href="https://t.me/crisis1823" target="_blank" style="color: #007AFF; text-decoration: none; font-size: 13px; display: flex; align-items: center; gap: 4px; justify-content: center;">
+                        <span>📱</span> @crisis1823
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const repoId = '{{ repo_id }}';
+        const createdDate = '{{ repo_info.created }}';
+
+        // Formatear fecha
+        document.getElementById('createdDate').textContent = 
+            new Date(createdDate).toLocaleString('es-ES');
+
+        // Función para formatear JSON con colores
+        function syntaxHighlight(json) {
+            if (typeof json !== 'string') {
+                json = JSON.stringify(json, null, 2);
+            }
+            json = json.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+            return json.replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g, function (match) {
+                let cls = 'json-number';
+                if (/^"/.test(match)) {
+                    if (/:$/.test(match)) {
+                        cls = 'json-key';
+                    } else {
+                        cls = 'json-string';
+                    }
+                } else if (/true|false/.test(match)) {
+                    cls = 'json-boolean';
+                } else if (/null/.test(match)) {
+                    cls = 'json-null';
+                }
+                return '<span class="' + cls + '">' + match + '</span>';
+            });
+        }
+
+        // Copiar al portapapeles
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                alert('✓ Copiado al portapapeles');
+            }).catch(err => {
+                console.error('Error al copiar:', err);
+            });
+        }
+
+        // Descargar archivo
+        function downloadFile(filename, content) {
+            const blob = new Blob([JSON.stringify(content, null, 2)], {type: 'application/json'});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        // Cargar datos del repositorio
+        async function loadRepoData() {
+            try {
+                const response = await fetch(`/repo/${repoId}/data`);
+                const data = await response.json();
+                
+                if (data.error) {
+                    document.getElementById('filesContainer').innerHTML = 
+                        `<div class="error">Error: ${data.error}</div>`;
+                    return;
+                }
+
+                const filesContainer = document.getElementById('filesContainer');
+                filesContainer.innerHTML = '';
+
+                Object.entries(data.files).forEach(([filename, content]) => {
+                    const fileDiv = document.createElement('div');
+                    fileDiv.className = 'file-item';
+                    
+                    fileDiv.innerHTML = `
+                        <div class="file-header">
+                            <div class="file-name">📄 ${filename}</div>
+                            <div style="display:flex;gap:10px;flex-wrap:wrap;">
+                                <button class="btn" onclick='copyToClipboard(${JSON.stringify(JSON.stringify(content))})'>
+                                    📋 Copiar
+                                </button>
+                                <button class="btn" onclick='downloadFile("${filename}", ${JSON.stringify(content)})'>
+                                    💾 Descargar
+                                </button>
+                            </div>
+                        </div>
+                        <pre class="json-viewer">${syntaxHighlight(content)}</pre>
+                    `;
+                    
+                    filesContainer.appendChild(fileDiv);
+                });
+
+            } catch (error) {
+                document.getElementById('filesContainer').innerHTML = 
+                    `<div class="error">Error al cargar los datos: ${error.message}</div>`;
+            }
+        }
+
+        // Cargar datos al iniciar
+        loadRepoData();
+    </script>
+</body>
+</html>
