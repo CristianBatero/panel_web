@@ -32,6 +32,7 @@ os.makedirs(REPOS_DIR, exist_ok=True)
 
 # Base de datos simple para repositorios
 REPOS_DB = os.path.join(REPOS_DIR, "repos_db.json")
+USERS_DB = os.path.join(REPOS_DIR, "users_db.json")
 
 def load_repos():
     if os.path.exists(REPOS_DB):
@@ -42,6 +43,16 @@ def load_repos():
 def save_repos(repos):
     with open(REPOS_DB, 'w', encoding='utf-8') as f:
         json.dump(repos, f, indent=2, ensure_ascii=False)
+
+def load_users():
+    if os.path.exists(USERS_DB):
+        with open(USERS_DB, 'r', encoding='utf-8') as f:
+            return json.load(f)
+    return []
+
+def save_users(users):
+    with open(USERS_DB, 'w', encoding='utf-8') as f:
+        json.dump(users, f, indent=2, ensure_ascii=False)
 
 # Decorador para requerir autenticación
 def login_required(f):
@@ -84,8 +95,10 @@ def dashboard():
 @login_required
 def get_users():
     try:
-        r = requests.get(f"{BASE_URL}/admin/users")
-        return jsonify(r.json())
+        # Actualizar estado de usuarios antes de devolverlos
+        update_users_status()
+        users = load_users()
+        return jsonify({'users': users})
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
@@ -94,8 +107,44 @@ def get_users():
 def add_user():
     try:
         data = request.json
-        r = requests.post(f"{BASE_URL}/admin/add", json=data)
-        return jsonify(r.json())
+        username = data.get('username')
+        password = data.get('password')
+        expiry_days = int(data.get('expiry_days', 30))
+        user_type = data.get('type', 'premium')
+        alias = data.get('alias', username)
+        
+        if not username or not password:
+            return jsonify({'error': 'Usuario y contraseña son requeridos'}), 400
+        
+        users = load_users()
+        
+        # Verificar si el usuario ya existe
+        if any(u['username'] == username for u in users):
+            return jsonify({'error': 'El usuario ya existe'}), 400
+        
+        # Calcular fecha de expiración
+        expiry_date = (datetime.now() + timedelta(days=expiry_days)).strftime('%Y-%m-%d')
+        
+        # Crear nuevo usuario
+        new_user = {
+            'username': username,
+            'password': password,
+            'alias': alias,
+            'type': user_type,
+            'status': 'activo',
+            'expiry_date': expiry_date,
+            'days_remaining': expiry_days,
+            'created_at': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        }
+        
+        users.append(new_user)
+        save_users(users)
+        
+        return jsonify({
+            'success': True,
+            'message': f'Usuario {username} creado exitosamente',
+            'user': new_user
+        })
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
@@ -104,8 +153,18 @@ def add_user():
 def delete_user():
     try:
         username = request.json.get('username')
-        # Implementar endpoint de eliminación
-        return jsonify({'message': f'Usuario {username} eliminado'})
+        
+        if not username:
+            return jsonify({'error': 'Usuario requerido'}), 400
+        
+        users = load_users()
+        users = [u for u in users if u['username'] != username]
+        save_users(users)
+        
+        return jsonify({
+            'success': True,
+            'message': f'Usuario {username} eliminado'
+        })
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
@@ -134,18 +193,70 @@ def renew_user():
     try:
         data = request.json
         username = data.get('username')
-        days_to_add = data.get('days', 0)
+        days_to_add = int(data.get('days', 0))
         
-        # Aquí debes implementar la lógica para renovar el usuario
-        # Por ejemplo, obtener la fecha de expiración actual y sumar los días
+        if not username or days_to_add <= 0:
+            return jsonify({'error': 'Usuario y días válidos son requeridos'}), 400
         
-        # Simulación de respuesta
+        users = load_users()
+        user_found = False
+        
+        for user in users:
+            if user['username'] == username:
+                user_found = True
+                
+                # Calcular nueva fecha de expiración
+                current_expiry = datetime.strptime(user['expiry_date'], '%Y-%m-%d')
+                new_expiry = current_expiry + timedelta(days=days_to_add)
+                user['expiry_date'] = new_expiry.strftime('%Y-%m-%d')
+                
+                # Calcular días restantes
+                days_remaining = (new_expiry - datetime.now()).days
+                user['days_remaining'] = max(0, days_remaining)
+                
+                # Actualizar estado
+                if days_remaining > 0:
+                    user['status'] = 'activo'
+                
+                break
+        
+        if not user_found:
+            return jsonify({'error': 'Usuario no encontrado'}), 404
+        
+        save_users(users)
+        
         return jsonify({
             'success': True,
             'message': f'Usuario {username} renovado por {days_to_add} días adicionales'
         })
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
+def update_users_status():
+    """Actualiza el estado de los usuarios basado en su fecha de expiración"""
+    try:
+        users = load_users()
+        updated = False
+        
+        for user in users:
+            expiry_date = datetime.strptime(user['expiry_date'], '%Y-%m-%d')
+            days_remaining = (expiry_date - datetime.now()).days
+            user['days_remaining'] = max(0, days_remaining)
+            
+            # Actualizar estado
+            old_status = user.get('status', 'activo')
+            if days_remaining <= 0:
+                user['status'] = 'expirado'
+            else:
+                user['status'] = 'activo'
+            
+            if old_status != user['status']:
+                updated = True
+        
+        if updated:
+            save_users(users)
+    except Exception as e:
+        print(f"Error actualizando estado de usuarios: {e}")
 
 # Endpoints para repositorios
 @app.route('/api/repos', methods=['GET'])

@@ -1282,6 +1282,7 @@
                 const daysRemaining = calculateDaysRemaining(u.expiry);
                 const active = daysRemaining > 0;
                 const userType = u.password ? 'password' : 'token';
+                const userObj = JSON.stringify(u).replace(/"/g, '&quot;');
                 
                 return `
                     <tr>
@@ -1292,14 +1293,11 @@
                         <td data-label="Expira">${new Date(u.expiry).toLocaleDateString('es-ES')}</td>
                         <td data-label="Días Restantes">${daysRemaining > 0 ? daysRemaining + ' días' : 'Expirado'}</td>
                         <td data-label="Acciones">
-                            <button class="action-btn action-btn-edit" onclick='editUser(${JSON.stringify(u)})' title="Editar">
-                                ✏️ Editar
-                            </button>
-                            <button class="action-btn action-btn-renew" onclick='openRenewModal(${JSON.stringify(u)})' title="Renovar">
+                            <button class="action-btn action-btn-renew" onclick='openRenewModal(${userObj})' title="Renovar">
                                 🔄 Renovar
                             </button>
                             <button class="action-btn action-btn-notify" onclick="openNotifyModal('${u.username}')" title="Notificar">
-                                📢 Notificar
+                                � Notificar
                             </button>
                             <button class="action-btn action-btn-delete" onclick="deleteUser('${u.username}')" title="Eliminar">
                                 🗑️ Eliminar
@@ -1325,8 +1323,9 @@
             const data = {
                 username: document.getElementById('username').value,
                 password: type === 'password' ? document.getElementById('password').value : '',
-                days: parseInt(document.getElementById('days').value),
-                alias: type === 'token' ? document.getElementById('alias').value : ''
+                expiry_days: parseInt(document.getElementById('days').value),
+                type: type,
+                alias: type === 'token' ? document.getElementById('alias').value : document.getElementById('username').value
             };
 
             try {
@@ -1336,14 +1335,18 @@
                     body: JSON.stringify(data)
                 });
                 const result = await response.json();
-                showMessage('userModalMessage', result.message || 'Usuario guardado exitosamente', 'success');
                 
-                setTimeout(() => {
-                    closeUserModal();
-                    loadUsers();
-                }, 1500);
+                if (result.success || result.user) {
+                    showMessage('userModalMessage', result.message || 'Usuario guardado exitosamente', 'success');
+                    setTimeout(() => {
+                        closeUserModal();
+                        loadUsers();
+                    }, 1500);
+                } else {
+                    showMessage('userModalMessage', result.error || 'Error al guardar usuario', 'error');
+                }
             } catch (error) {
-                showMessage('userModalMessage', 'Error al guardar usuario', 'error');
+                showMessage('userModalMessage', 'Error al guardar usuario: ' + error.message, 'error');
             }
         });
 
@@ -1399,7 +1402,18 @@
         async function loadUsers() {
             try {
                 const response = await fetch('/api/users');
-                allUsers = await response.json();
+                const data = await response.json();
+                
+                // Manejar tanto {users: [...]} como [...] directamente
+                allUsers = data.users || data;
+                
+                // Asegurar que cada usuario tenga el campo expiry_date como expiry
+                allUsers = allUsers.map(user => ({
+                    ...user,
+                    expiry: user.expiry_date || user.expiry,
+                    alias: user.alias || user.username
+                }));
+                
                 renderUsers();
             } catch (error) {
                 console.error('Error cargando usuarios:', error);
