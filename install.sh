@@ -36,32 +36,81 @@ else
 fi
 echo ""
 
-# [2] Actualizar sistema e instalar Python
+# [2] Actualizar sistema e instalar Python COMPLETO
 echo "[2/8] Instalando Python y dependencias del sistema..."
+
 if [[ "$OS" == "ubuntu" ]] || [[ "$OS" == "debian" ]]; then
-    sudo apt update -qq > /dev/null 2>&1
-    sudo apt install -y python3 python3-pip wget curl -qq > /dev/null 2>&1
+    print_info "Actualizando repositorios..."
+    sudo apt update > /dev/null 2>&1
+    
+    print_info "Instalando Python completo..."
+    # Instalar Python con TODAS las dependencias necesarias
+    sudo apt install -y \
+        python3 \
+        python3-pip \
+        python3-dev \
+        python3-venv \
+        python3-setuptools \
+        python3-wheel \
+        build-essential \
+        wget \
+        curl \
+        net-tools > /dev/null 2>&1
+    
+    # Actualizar pip a la última versión
+    print_info "Actualizando pip..."
+    python3 -m pip install --upgrade pip setuptools wheel > /dev/null 2>&1
+    
 elif [[ "$OS" == "centos" ]] || [[ "$OS" == "rhel" ]]; then
-    sudo yum install -y python3 python3-pip wget curl -q > /dev/null 2>&1
+    sudo yum install -y python3 python3-pip python3-devel gcc wget curl net-tools > /dev/null 2>&1
+    python3 -m pip install --upgrade pip setuptools wheel > /dev/null 2>&1
 else
     print_info "Sistema no reconocido, intentando instalación genérica..."
-    sudo apt install -y python3 python3-pip wget curl -qq > /dev/null 2>&1 || \
-    sudo yum install -y python3 python3-pip wget curl -q > /dev/null 2>&1
+    sudo apt install -y python3 python3-pip python3-dev build-essential wget curl net-tools > /dev/null 2>&1 || \
+    sudo yum install -y python3 python3-pip python3-devel gcc wget curl net-tools > /dev/null 2>&1
+    python3 -m pip install --upgrade pip setuptools wheel > /dev/null 2>&1
 fi
 
+# Verificar Python
 if ! command -v python3 &> /dev/null; then
-    print_error "No se pudo instalar Python. Instálalo manualmente."
+    print_error "No se pudo instalar Python. Instálalo manualmente: sudo apt install python3 python3-pip"
 fi
+
+# Verificar pip
+if ! python3 -m pip --version &> /dev/null; then
+    print_error "pip no está funcionando. Instálalo manualmente: sudo apt install python3-pip"
+fi
+
 print_success "Python instalado correctamente"
+python3 --version
 echo ""
 
-# [3] Instalar dependencias de Python
+# [3] Instalar dependencias de Python de forma robusta
 echo "[3/8] Instalando Flask y dependencias..."
-pip3 install --upgrade pip > /dev/null 2>&1
-pip3 install flask requests > /dev/null 2>&1
-if [ $? -ne 0 ]; then
-    sudo pip3 install flask requests > /dev/null 2>&1
+
+# Intentar con pip3 normal primero
+print_info "Instalando Flask..."
+python3 -m pip install --user flask requests 2>&1 | grep -v "WARNING" || true
+
+# Verificar que se instaló correctamente
+if python3 -c "import flask" 2>/dev/null; then
+    print_success "Flask instalado correctamente"
+else
+    print_info "Reintentando con sudo..."
+    sudo python3 -m pip install flask requests > /dev/null 2>&1
+    
+    if python3 -c "import flask" 2>/dev/null; then
+        print_success "Flask instalado correctamente"
+    else
+        print_error "No se pudo instalar Flask. Ejecuta manualmente: sudo apt install python3-flask python3-requests"
+    fi
 fi
+
+# Verificar requests
+if ! python3 -c "import requests" 2>/dev/null; then
+    print_error "Requests no se instaló. Ejecuta: sudo apt install python3-requests"
+fi
+
 print_success "Dependencias instaladas"
 echo ""
 
@@ -207,15 +256,81 @@ pkill -f web_panel.py > /dev/null 2>&1
 pkill -f "python.*web_panel" > /dev/null 2>&1
 sleep 1
 
-# Iniciar panel en segundo plano
-nohup python3 web_panel.py > panel.log 2>&1 &
-sleep 3
+# Verificar que web_panel.py existe
+if [ ! -f web_panel.py ]; then
+    print_error "No se encontró web_panel.py. Verifica la descarga."
+fi
 
-# Verificar que esté corriendo
-if ps aux | grep -v grep | grep web_panel.py > /dev/null; then
-    print_success "Panel iniciado correctamente"
+# Verificar que config.py existe
+if [ ! -f config.py ]; then
+    print_error "No se encontró config.py. Verifica la configuración."
+fi
+
+# Verificar dependencias una última vez
+print_info "Verificando dependencias finales..."
+if ! python3 -c "import flask, requests" 2>/dev/null; then
+    print_error "Flask o Requests no están instalados correctamente. Ejecuta: sudo apt install python3-flask python3-requests"
+fi
+
+# Iniciar panel en segundo plano
+print_info "Iniciando servidor Flask..."
+nohup python3 web_panel.py > panel.log 2>&1 &
+PANEL_PID=$!
+sleep 4
+
+# Verificar múltiples formas
+PANEL_RUNNING=false
+
+# Método 1: Verificar PID
+if ps -p $PANEL_PID > /dev/null 2>&1; then
+    PANEL_RUNNING=true
+fi
+
+# Método 2: Verificar proceso por nombre
+if ps aux | grep -v grep | grep web_panel.py > /dev/null 2>&1; then
+    PANEL_RUNNING=true
+fi
+
+# Método 3: Verificar puerto 5000
+if command -v netstat &> /dev/null; then
+    if netstat -tuln 2>/dev/null | grep :5000 > /dev/null; then
+        PANEL_RUNNING=true
+    fi
+elif command -v ss &> /dev/null; then
+    if ss -tuln 2>/dev/null | grep :5000 > /dev/null; then
+        PANEL_RUNNING=true
+    fi
+fi
+
+if [ "$PANEL_RUNNING" = true ]; then
+    print_success "Panel iniciado correctamente (PID: $PANEL_PID)"
 else
-    print_error "Error al iniciar el panel. Revisa: cat panel.log"
+    echo ""
+    print_error "Error al iniciar el panel"
+    echo ""
+    echo "════════════════════════════════════════════════════════════"
+    echo "  📋 Log de Error:"
+    echo "════════════════════════════════════════════════════════════"
+    if [ -f panel.log ]; then
+        cat panel.log
+    else
+        echo "No se encontró panel.log"
+    fi
+    echo ""
+    echo "════════════════════════════════════════════════════════════"
+    echo "  🔧 Soluciones:"
+    echo "════════════════════════════════════════════════════════════"
+    echo ""
+    echo "1. Instalar Flask manualmente:"
+    echo "   sudo apt install python3-flask python3-requests"
+    echo ""
+    echo "2. Verificar puerto 5000:"
+    echo "   sudo netstat -tuln | grep 5000"
+    echo ""
+    echo "3. Iniciar manualmente:"
+    echo "   python3 web_panel.py"
+    echo ""
+    exit 1
 fi
 echo ""
 
