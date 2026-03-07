@@ -1,38 +1,72 @@
 # 🌐 Panel Web Elite
 
-Panel de administración web profesional para gestión de usuarios y repositorios.
+Panel de administración web para gestión de usuarios y repositorios.
 
 ---
 
-## 🚀 Instalación (1 Comando)
+## 🚀 Instalación Automática
 
-Copia y pega este comando en tu terminal:
+### Método 1: Instalador Ultra Robusto (RECOMENDADO PARA VPS)
 
 ```bash
-wget -O - https://raw.githubusercontent.com/CristianBatero/panel_web/main/install.sh | bash
+wget https://raw.githubusercontent.com/CristianBatero/panel_web/main/install_ultra.sh
+chmod +x install_ultra.sh
+./install_ultra.sh
 ```
 
-El instalador hará TODO automáticamente:
-- ✅ Instala Python y dependencias
-- ✅ Descarga el panel
-- ✅ Te pide tu PIN
-- ✅ Configura el puerto 5000
-- ✅ Abre el firewall
-- ✅ Inicia el panel
+Este instalador es el más completo:
+- ✅ Instala Python completo con todas las dependencias
+- ✅ Instala Flask de 3 formas diferentes (garantiza éxito)
+- ✅ Verifica cada paso del proceso
+- ✅ Muestra información detallada
+- ✅ Maneja errores automáticamente
 
-**Listo en 2 minutos.**
+### Método 2: Instalador Automático Mejorado
+
+```bash
+wget https://raw.githubusercontent.com/CristianBatero/panel_web/main/install.sh
+chmod +x install.sh
+./install.sh
+```
+
+### Método 3: Instalador Simple
+
+```bash
+wget https://raw.githubusercontent.com/CristianBatero/panel_web/main/install_simple.sh
+chmod +x install_simple.sh
+./install_simple.sh
+```
+
+**Todos los instaladores:**
+- ✅ Instalan Python y dependencias automáticamente
+- ✅ Descargan el panel desde GitHub
+- ✅ Configuran el puerto 5000
+- ✅ Abren el firewall
+- ✅ Inician el panel automáticamente
+
+---
+
+## 🔍 Verificar Sistema Antes de Instalar
+
+```bash
+wget https://raw.githubusercontent.com/CristianBatero/panel_web/main/verificar_sistema.sh
+chmod +x verificar_sistema.sh
+./verificar_sistema.sh
+```
+
+Esto te dirá si tu VPS está listo para la instalación.
 
 ---
 
 ## 🌐 Acceder al Panel
 
-Abre tu navegador:
+Abre tu navegador en:
 
 ```
 http://TU_IP:5000
 ```
 
-Ingresa el PIN que configuraste.
+Ingresa el PIN que configuraste durante la instalación.
 
 ---
 
@@ -47,14 +81,7 @@ tail -f panel.log
 ### Reiniciar el panel
 
 ```bash
-pkill -f web_panel.py
-nohup python3 web_panel.py > panel.log 2>&1 &
-```
-
-### Ver si está corriendo
-
-```bash
-ps aux | grep web_panel
+pkill -f web_panel.py && nohup python3 web_panel.py > panel.log 2>&1 &
 ```
 
 ### Detener el panel
@@ -63,9 +90,13 @@ ps aux | grep web_panel
 pkill -f web_panel.py
 ```
 
----
+### Ver si está corriendo
 
-## 🔄 Actualizar el Panel
+```bash
+ps aux | grep web_panel
+```
+
+### Actualizar a la última versión
 
 ```bash
 pkill -f web_panel.py
@@ -83,80 +114,63 @@ Edita el archivo de configuración:
 nano config.py
 ```
 
-Busca y cambia:
+Busca esta línea y cámbiala:
 
 ```python
 'admin_pin': 'TU_NUEVO_PIN',
 ```
 
-Guarda: `CTRL + O`, Enter, `CTRL + X`
+Guarda los cambios:
+- Presiona `CTRL + O`
+- Presiona `Enter`
+- Presiona `CTRL + X`
 
 Reinicia el panel:
 
 ```bash
-pkill -f web_panel.py
-nohup python3 web_panel.py > panel.log 2>&1 &
+pkill -f web_panel.py && nohup python3 web_panel.py > panel.log 2>&1 &
 ```
 
 ---
 
-## 🎯 Funcionalidades
-
-### 👥 Gestión de Usuarios
-- Crear usuarios con contraseña
-- Registrar usuarios por token (Device ID)
-- Renovar suscripciones
-- Filtrar activos/vencidos
-- Búsqueda en tiempo real
-- Enviar notificaciones
-- Editar y eliminar
-
-### 📦 Repositorios
-- Crear repositorios JSON
-- URLs únicas para compartir
-- Vista pública
-- Copiar y descargar
-- Eliminar repositorios
-
----
-
-## 🐛 Solución de Problemas
+## � Solución de Problemas
 
 ### El panel no inicia
 
-Ver el error:
+Ver el error en los logs:
+
 ```bash
 cat panel.log
 ```
 
 ### Puerto 5000 ocupado
 
-Ver qué lo usa:
+Ver qué proceso está usando el puerto:
+
 ```bash
 sudo lsof -i :5000
 ```
 
-Matar el proceso:
+Detener el proceso:
+
 ```bash
 sudo kill -9 ID_DEL_PROCESO
 ```
 
 ### No puedo acceder desde el navegador
 
-1. Verifica que esté corriendo:
-   ```bash
-   ps aux | grep web_panel
-   ```
+Verificar que el panel esté corriendo:
 
-2. Verifica el firewall:
-   ```bash
-   sudo ufw status
-   ```
+```bash
+ps aux | grep web_panel
+```
 
-3. Abre el puerto manualmente:
-   ```bash
-   sudo ufw allow 5000/tcp
-   ```
+Abrir el puerto en el firewall:
+
+```bash
+sudo ufw allow 5000/tcp
+sudo ufw reload
+```
 
 ---
 
@@ -166,10 +180,4 @@ sudo kill -9 ID_DEL_PROCESO
 
 ---
 
-## 👨‍💻 Créditos
-
-Desarrollado por **CrisDev**
-
----
-
-**Versión**: 2.0.0
+Desarrollado por **CrisDev** | Versión 2.0.0
