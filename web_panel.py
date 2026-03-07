@@ -354,9 +354,35 @@ def add_file_to_repo(repo_id):
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-# Vista pública de repositorio (sin autenticación)
+# Vista pública de repositorio (sin autenticación) - Devuelve JSON crudo
 @app.route('/repo/<repo_id>')
 def view_repo(repo_id):
+    repos = load_repos()
+    if repo_id not in repos:
+        return jsonify({'error': 'Repositorio no encontrado'}), 404
+    
+    try:
+        repo_path = os.path.join(REPOS_DIR, repo_id)
+        files_data = {}
+        
+        for filename in repos[repo_id]['files']:
+            file_path = os.path.join(repo_path, filename)
+            if os.path.exists(file_path):
+                with open(file_path, 'r', encoding='utf-8') as f:
+                    files_data[filename] = json.load(f)
+        
+        # Si solo hay un archivo, devolver su contenido directamente
+        if len(files_data) == 1:
+            return jsonify(list(files_data.values())[0])
+        
+        # Si hay múltiples archivos, devolver todos
+        return jsonify(files_data)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+# Vista HTML del repositorio (opcional)
+@app.route('/repo/<repo_id>/view')
+def view_repo_html(repo_id):
     repos = load_repos()
     if repo_id not in repos:
         return "Repositorio no encontrado", 404

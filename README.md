@@ -99,6 +99,15 @@ ps aux | grep web_panel
 ### Actualizar a la última versión
 
 ```bash
+cd panel
+wget https://raw.githubusercontent.com/CristianBatero/panel_web/main/actualizar.sh
+chmod +x actualizar.sh
+./actualizar.sh
+```
+
+### Actualización manual (alternativa)
+
+```bash
 pkill -f web_panel.py
 wget -O web_panel.py https://raw.githubusercontent.com/CristianBatero/panel_web/main/web_panel.py
 nohup python3 web_panel.py > panel.log 2>&1 &
