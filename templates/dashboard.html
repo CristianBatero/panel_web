@@ -958,6 +958,32 @@
         </div>
     </div>
 
+    <!-- Modal Editar Repositorio -->
+    <div id="editRepoModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>✏️ Editar Repositorio</h2>
+                <button class="modal-close" onclick="closeEditRepoModal()">✕</button>
+            </div>
+            <div id="editRepoMessage" class="message"></div>
+            <form id="editRepoForm">
+                <input type="hidden" id="editRepoId">
+                <div class="form-group">
+                    <label>Nombre del Repositorio</label>
+                    <input type="text" id="editRepoName" readonly style="background: rgba(255,255,255,0.05);">
+                </div>
+                <div class="form-group">
+                    <label>Contenido JSON</label>
+                    <textarea id="editRepoContent" style="min-height:300px;" placeholder='{"ejemplo": "datos"}'></textarea>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-cancel" onclick="closeEditRepoModal()">Cancelar</button>
+                    <button type="submit" class="btn btn-success">Guardar Cambios</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- Modal Crear/Editar Usuario -->
     <div id="userModal" class="modal">
         <div class="modal-content">
@@ -1490,13 +1516,80 @@
                             <a href="${repo.url}" target="_blank" class="repo-url">${window.location.origin}${repo.url}</a>
                             <small style="color:rgba(255,255,255,0.5);">Creado: ${new Date(repo.created).toLocaleString()}</small>
                         </div>
-                        <button class="btn btn-danger" onclick="deleteRepo('${id}')">Eliminar</button>
+                        <div style="display:flex;gap:10px;">
+                            <button class="btn" onclick="openEditRepoModal('${id}', '${repo.name}')">✏️ Editar</button>
+                            <button class="btn btn-danger" onclick="deleteRepo('${id}')">🗑️ Eliminar</button>
+                        </div>
                     </div>
                 `).join('');
             } catch (error) {
                 console.error('Error cargando repositorios:', error);
             }
         }
+
+        // Modal editar repositorio
+        async function openEditRepoModal(repoId, repoName) {
+            document.getElementById('editRepoId').value = repoId;
+            document.getElementById('editRepoName').value = repoName;
+            
+            try {
+                // Cargar contenido actual
+                const response = await fetch(`/repo/${repoId}/data`);
+                const data = await response.json();
+                
+                // Si es un solo archivo, mostrar su contenido
+                let content = data;
+                if (data.files && Object.keys(data.files).length === 1) {
+                    content = Object.values(data.files)[0];
+                }
+                
+                document.getElementById('editRepoContent').value = JSON.stringify(content, null, 2);
+                document.getElementById('editRepoModal').classList.add('active');
+            } catch (error) {
+                alert('Error al cargar el repositorio: ' + error.message);
+            }
+        }
+
+        function closeEditRepoModal() {
+            document.getElementById('editRepoModal').classList.remove('active');
+            document.getElementById('editRepoForm').reset();
+        }
+
+        // Formulario editar repositorio
+        document.getElementById('editRepoForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const repoId = document.getElementById('editRepoId').value;
+            const contentStr = document.getElementById('editRepoContent').value;
+            
+            let content = {};
+            try {
+                content = contentStr ? JSON.parse(contentStr) : {};
+            } catch (error) {
+                showMessage('editRepoMessage', 'JSON inválido: ' + error.message, 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/repos/${repoId}/update`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({content})
+                });
+                const result = await response.json();
+                
+                if (result.success) {
+                    showMessage('editRepoMessage', 'Repositorio actualizado exitosamente', 'success');
+                    setTimeout(() => {
+                        closeEditRepoModal();
+                        loadRepos();
+                    }, 1500);
+                } else {
+                    showMessage('editRepoMessage', result.error || 'Error al actualizar', 'error');
+                }
+            } catch (error) {
+                showMessage('editRepoMessage', 'Error al actualizar repositorio: ' + error.message, 'error');
+            }
+        });
 
         async function deleteRepo(repoId) {
             if (!confirm('¿Eliminar este repositorio?')) return;

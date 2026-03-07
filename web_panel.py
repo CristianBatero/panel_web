@@ -108,13 +108,17 @@ def add_user():
     try:
         data = request.json
         username = data.get('username')
-        password = data.get('password')
+        password = data.get('password', '')
         expiry_days = int(data.get('expiry_days', 30))
-        user_type = data.get('type', 'premium')
+        user_type = data.get('type', 'password')
         alias = data.get('alias', username)
         
-        if not username or not password:
-            return jsonify({'error': 'Usuario y contraseña son requeridos'}), 400
+        if not username:
+            return jsonify({'error': 'Usuario es requerido'}), 400
+        
+        # Para usuarios tipo password, la contraseña es obligatoria
+        if user_type == 'password' and not password:
+            return jsonify({'error': 'Contraseña es requerida para usuarios tipo password'}), 400
         
         users = load_users()
         
@@ -128,7 +132,7 @@ def add_user():
         # Crear nuevo usuario
         new_user = {
             'username': username,
-            'password': password,
+            'password': password if user_type == 'password' else '',
             'alias': alias,
             'type': user_type,
             'status': 'activo',
@@ -353,6 +357,80 @@ def add_file_to_repo(repo_id):
         return jsonify({'success': True, 'message': f'Archivo {filename} agregado'})
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
+@app.route('/api/repos/<repo_id>/update', methods=['POST'])
+@login_required
+def update_repo_content(repo_id):
+    try:
+        repos = load_repos()
+        if repo_id not in repos:
+            return jsonify({'error': 'Repositorio no encontrado'}), 404
+        
+        data = request.json
+        content = data.get('content', {})
+        
+        # Actualizar el archivo data.json principal
+        repo_path = os.path.join(REPOS_DIR, repo_id)
+        file_path = os.path.join(repo_path, 'data.json')
+        
+        with open(file_path, 'w', encoding='utf-8') as f:
+            json.dump(content, f, indent=2, ensure_ascii=False)
+        
+        return jsonify({'success': True, 'message': 'Repositorio actualizado exitosamente'})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+# Endpoint para verificar usuario (para la app)
+@app.route('/api/auth/verify', methods=['POST'])
+def verify_user():
+    try:
+        data = request.json
+        username = data.get('username')
+        password = data.get('password')
+        
+        if not username:
+            return jsonify({'error': 'Usuario requerido', 'authenticated': False}), 400
+        
+        users = load_users()
+        
+        # Buscar usuario
+        user = next((u for u in users if u['username'] == username), None)
+        
+        if not user:
+            return jsonify({'error': 'Usuario no encontrado', 'authenticated': False}), 404
+        
+        # Verificar contraseña (si es tipo password)
+        if user.get('type') == 'password':
+            if not password or user.get('password') != password:
+                return jsonify({'error': 'Contraseña incorrecta', 'authenticated': False}), 401
+        
+        # Verificar si está activo
+        expiry_date = datetime.strptime(user['expiry_date'], '%Y-%m-%d')
+        days_remaining = (expiry_date - datetime.now()).days
+        is_active = days_remaining > 0
+        
+        if not is_active:
+            return jsonify({
+                'error': 'Usuario expirado',
+                'authenticated': False,
+                'expired': True,
+                'expiry_date': user['expiry_date']
+            }), 403
+        
+        # Usuario autenticado correctamente
+        return jsonify({
+            'authenticated': True,
+            'user': {
+                'username': user['username'],
+                'alias': user.get('alias', username),
+                'type': user.get('type', 'password'),
+                'expiry_date': user['expiry_date'],
+                'days_remaining': days_remaining,
+                'status': 'activo'
+            }
+        })
+    except Exception as e:
+        return jsonify({'error': str(e), 'authenticated': False}), 500
 
 # Vista pública de repositorio (sin autenticación) - Devuelve JSON crudo
 @app.route('/repo/<repo_id>')
